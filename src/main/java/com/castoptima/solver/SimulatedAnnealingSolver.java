@@ -14,6 +14,13 @@ public class SimulatedAnnealingSolver implements ScheduleSolver {
         this.coolingRate = coolingRate;
     }
 
+    private double acceptanceProbability(double currentCost, double neighborCost, double temp) {
+        if (neighborCost < currentCost) {
+            return 1.0;
+        }
+        return Math.exp((currentCost - neighborCost) / temp);
+    }
+
     @Override
     public List<Scene> solve(List<Scene> scenes, Map<String, Actor> actors) {
         List<Scene> currentSolution = new ArrayList<>(scenes);
@@ -26,24 +33,25 @@ public class SimulatedAnnealingSolver implements ScheduleSolver {
         double temp = initialTemperature;
         Random random = new Random();
 
-        while (temp > 1.0) {
+        while (temp > 0.1) {
             List<Scene> neighbor = new ArrayList<>(currentSolution);
             int idx1 = random.nextInt(neighbor.size());
             int idx2 = random.nextInt(neighbor.size());
             Collections.swap(neighbor, idx1, idx2);
 
             double neighborCost = CostCalculator.calculateHoldingCost(neighbor, actors);
-            if (neighborCost < currentCost) {
+
+            if (acceptanceProbability(currentCost, neighborCost, temp) > random.nextDouble()) {
                 currentSolution = neighbor;
                 currentCost = neighborCost;
-
-                if (currentCost < bestCost) {
-                    bestSolution = new ArrayList<>(currentSolution);
-                    bestCost = currentCost;
-                }
             }
 
-            temp *= coolingRate;
+            if (currentCost < bestCost) {
+                bestSolution = new ArrayList<>(currentSolution);
+                bestCost = currentCost;
+            }
+
+            temp *= (1 - coolingRate);
         }
 
         return bestSolution;

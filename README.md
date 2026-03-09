@@ -4,3 +4,4 @@ CastOptima is an enterprise-grade combinatorial optimization engine for movie ca
 
 ## Algorithm Specs
 - **GreedyCSPSolver**: Uses incremental constraint checking to evaluate actor holding costs across scene perturbations.
+- **SimulatedAnnealingSolver**: Probabilistic metaheuristic applying the Metropolis criterion to escape local minima in complex schedules.

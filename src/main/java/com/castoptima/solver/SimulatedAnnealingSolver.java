@@ -1,5 +1,6 @@
 package com.castoptima.solver;
 
+import com.castoptima.evaluation.CostCalculator;
 import com.castoptima.model.Actor;
 import com.castoptima.model.Scene;
 import java.util.*;
@@ -15,6 +16,36 @@ public class SimulatedAnnealingSolver implements ScheduleSolver {
 
     @Override
     public List<Scene> solve(List<Scene> scenes, Map<String, Actor> actors) {
-        return new ArrayList<>(scenes);
+        List<Scene> currentSolution = new ArrayList<>(scenes);
+        Collections.shuffle(currentSolution);
+        
+        List<Scene> bestSolution = new ArrayList<>(currentSolution);
+        double currentCost = CostCalculator.calculateHoldingCost(currentSolution, actors);
+        double bestCost = currentCost;
+
+        double temp = initialTemperature;
+        Random random = new Random();
+
+        while (temp > 1.0) {
+            List<Scene> neighbor = new ArrayList<>(currentSolution);
+            int idx1 = random.nextInt(neighbor.size());
+            int idx2 = random.nextInt(neighbor.size());
+            Collections.swap(neighbor, idx1, idx2);
+
+            double neighborCost = CostCalculator.calculateHoldingCost(neighbor, actors);
+            if (neighborCost < currentCost) {
+                currentSolution = neighbor;
+                currentCost = neighborCost;
+
+                if (currentCost < bestCost) {
+                    bestSolution = new ArrayList<>(currentSolution);
+                    bestCost = currentCost;
+                }
+            }
+
+            temp *= coolingRate;
+        }
+
+        return bestSolution;
     }
 }

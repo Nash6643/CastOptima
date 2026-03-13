@@ -4,6 +4,7 @@ import com.castoptima.model.Actor;
 import com.castoptima.model.Scene;
 import com.castoptima.solver.GreedyCSPSolver;
 import com.castoptima.solver.SimulatedAnnealingSolver;
+import com.castoptima.solver.GeneticAlgorithmSolver;
 import com.castoptima.solver.ScheduleSolver;
 import com.castoptima.evaluation.CostCalculator;
 
@@ -27,6 +28,8 @@ public class Main {
 
         List<Scene> scenes = Arrays.asList(s1, s2, s3, s4);
 
+        System.out.println("=== CastOptima Solver Comparison ===");
+
         ScheduleSolver greedy = new GreedyCSPSolver();
         List<Scene> greedyResult = greedy.solve(scenes, actors);
         System.out.println("Greedy Cost: " + CostCalculator.calculateHoldingCost(greedyResult, actors));
@@ -34,5 +37,9 @@ public class Main {
         ScheduleSolver sa = new SimulatedAnnealingSolver(1000.0, 0.003);
         List<Scene> saResult = sa.solve(scenes, actors);
         System.out.println("Annealing Cost: " + CostCalculator.calculateHoldingCost(saResult, actors));
+
+        ScheduleSolver ga = new GeneticAlgorithmSolver(50, 100, 0.15);
+        List<Scene> gaResult = ga.solve(scenes, actors);
+        System.out.println("GA Cost: " + CostCalculator.calculateHoldingCost(gaResult, actors));
     }
 }

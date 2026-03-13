@@ -67,6 +67,34 @@ public class GeneticAlgorithmSolver implements ScheduleSolver {
     @Override
     public List<Scene> solve(List<Scene> scenes, Map<String, Actor> actors) {
         List<List<Scene>> population = initializePopulation(scenes);
-        return population.get(0);
+        List<Scene> bestEver = population.get(0);
+        double bestCostEver = CostCalculator.calculateHoldingCost(bestEver, actors);
+
+        for (int gen = 0; gen < generations; gen++) {
+            population.sort(Comparator.comparingDouble(ind -> CostCalculator.calculateHoldingCost(ind, actors)));
+
+            double currentBestCost = CostCalculator.calculateHoldingCost(population.get(0), actors);
+            if (currentBestCost < bestCostEver) {
+                bestCostEver = currentBestCost;
+                bestEver = new ArrayList<>(population.get(0));
+            }
+
+            List<List<Scene>> nextGen = new ArrayList<>();
+            // Elitism: carry top 2 unchanged
+            nextGen.add(new ArrayList<>(population.get(0)));
+            nextGen.add(new ArrayList<>(population.get(1)));
+
+            while (nextGen.size() < populationSize) {
+                List<Scene> p1 = population.get(random.nextInt(populationSize / 2));
+                List<Scene> p2 = population.get(random.nextInt(populationSize / 2));
+                List<Scene> child = crossover(p1, p2);
+                mutate(child);
+                nextGen.add(child);
+            }
+
+            population = nextGen;
+        }
+
+        return bestEver;
     }
 }

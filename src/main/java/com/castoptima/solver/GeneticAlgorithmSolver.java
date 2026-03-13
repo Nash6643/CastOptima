@@ -18,6 +18,11 @@ public class GeneticAlgorithmSolver implements ScheduleSolver {
     }
 
     private List<Scene> crossover(List<Scene> parent1, List<Scene> parent2) {
+        // Guard clause for small input sets
+        if (parent1 == null || parent1.size() <= 1) {
+            return parent1 != null ? new ArrayList<>(parent1) : new ArrayList<>();
+        }
+
         int size = parent1.size();
         int start = random.nextInt(size);
         int end = random.nextInt(size);
@@ -47,6 +52,10 @@ public class GeneticAlgorithmSolver implements ScheduleSolver {
     }
 
     private void mutate(List<Scene> individual) {
+        if (individual.size() <= 1) {
+            return;
+        }
+
         if (random.nextDouble() < mutationRate) {
             int i = random.nextInt(individual.size());
             int j = random.nextInt(individual.size());
@@ -66,6 +75,11 @@ public class GeneticAlgorithmSolver implements ScheduleSolver {
 
     @Override
     public List<Scene> solve(List<Scene> scenes, Map<String, Actor> actors) {
+        // Guard clause for small input sets
+        if (scenes == null || scenes.size() <= 1) {
+            return scenes != null ? new ArrayList<>(scenes) : new ArrayList<>();
+        }
+
         List<List<Scene>> population = initializePopulation(scenes);
         List<Scene> bestEver = population.get(0);
         double bestCostEver = CostCalculator.calculateHoldingCost(bestEver, actors);
@@ -80,13 +94,16 @@ public class GeneticAlgorithmSolver implements ScheduleSolver {
             }
 
             List<List<Scene>> nextGen = new ArrayList<>();
-            // Elitism: carry top 2 unchanged
+            // Elitism: carry top 2 unchanged (or top 1 if populationSize < 2)
             nextGen.add(new ArrayList<>(population.get(0)));
-            nextGen.add(new ArrayList<>(population.get(1)));
+            if (populationSize > 1 && population.size() > 1) {
+                nextGen.add(new ArrayList<>(population.get(1)));
+            }
 
             while (nextGen.size() < populationSize) {
-                List<Scene> p1 = population.get(random.nextInt(populationSize / 2));
-                List<Scene> p2 = population.get(random.nextInt(populationSize / 2));
+                int selectBound = Math.max(1, populationSize / 2);
+                List<Scene> p1 = population.get(random.nextInt(selectBound));
+                List<Scene> p2 = population.get(random.nextInt(selectBound));
                 List<Scene> child = crossover(p1, p2);
                 mutate(child);
                 nextGen.add(child);

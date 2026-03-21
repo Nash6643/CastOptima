@@ -9,6 +9,11 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
+        if (args.length > 0 && "--production".equalsIgnoreCase(args[0])) {
+            AppConsole.main(args);
+            return;
+        }
+
         System.out.println("==================================================");
         System.out.println("       CASTOPTIMA ENGINE v1.0.0 RUNTIME           ");
         System.out.println("==================================================");

@@ -2,34 +2,43 @@ package com.castoptima.evaluation;
 
 import com.castoptima.model.Actor;
 import com.castoptima.model.Scene;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+
+import java.util.*;
 
 public class CostCalculator {
-    
-    /**
-     * Calculates the holding cost for actors when they are idle on set between their first and last shooting days.
-     */
-    public static double calculateHoldingCost(List<Scene> schedule, Map<String, Actor> actorMap) {
-        Map<String, Integer> firstDay = new HashMap<>();
-        Map<String, Integer> lastDay = new HashMap<>();
+
+    public static double calculateHoldingCost(List<Scene> schedule, Map<String, Actor> actors) {
+        if (schedule == null || schedule.isEmpty() || actors == null) {
+            return 0.0;
+        }
+
+        Map<String, Integer> firstAppearance = new HashMap<>();
+        Map<String, Integer> lastAppearance = new HashMap<>();
 
         int currentDay = 0;
         for (Scene scene : schedule) {
+            int duration = Math.max(1, scene.getDurationDays());
+            int startDay = currentDay;
+            int endDay = currentDay + duration;
+
             for (String actorId : scene.getRequiredActorIds()) {
-                firstDay.putIfAbsent(actorId, currentDay);
-                lastDay.put(actorId, currentDay + scene.getDurationDays() - 1);
+                firstAppearance.putIfAbsent(actorId, startDay);
+                lastAppearance.put(actorId, endDay);
             }
-            currentDay += scene.getDurationDays();
+            currentDay = endDay;
         }
 
         double totalHoldingCost = 0.0;
-        for (String actorId : firstDay.keySet()) {
-            int span = lastDay.get(actorId) - firstDay.get(actorId) + 1;
-            Actor actor = actorMap.get(actorId);
+
+        for (Map.Entry<String, Integer> entry : firstAppearance.entrySet()) {
+            String actorId = entry.getKey();
+            int start = entry.getValue();
+            int end = lastAppearance.get(actorId);
+
+            Actor actor = actors.get(actorId);
             if (actor != null) {
-                totalHoldingCost += span * actor.getDailyRate();
+                int totalDaysOnContract = end - start;
+                totalHoldingCost += totalDaysOnContract * actor.getDailyRate();
             }
         }
 
